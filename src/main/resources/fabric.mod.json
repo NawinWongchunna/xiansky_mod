@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "xiansky",
+  "version": "${version}",
+  "name": "Xian Sky Walk",
+  "description": "กด G เดินบนอากาศ เหยียบวงแหวนเซียนพุ่งไปข้างหน้า",
+  "authors": ["you"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.xiansky.XianSkyClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
+}

@@ -5,6 +5,9 @@ import dev.ascension.rings.client.vfx.AscensionHud;
 import dev.ascension.rings.client.vfx.AscensionRenderer;
 import dev.ascension.rings.client.vfx.SwordHud;
 import dev.ascension.rings.client.vfx.SwordRenderer;
+import dev.ascension.rings.client.vfx.YinYangHud;
+import dev.ascension.rings.client.vfx.YinYangRenderer;
+import dev.ascension.rings.client.yinyang.YinYangState;
 import dev.ascension.rings.network.Net;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -27,6 +30,8 @@ public class AscensionClient implements ClientModInitializer {
     public static KeyBinding ACTIVATE_KEY;
     /** ปุ่มสกิล Void Blade = G */
     public static KeyBinding SWORD_KEY;
+    /** ปุ่มสกิล Yin-Yang Scripture = J (กดครั้งแรกเรียกมังกร กดอีกครั้งสั่งโจมตีจุดที่เล็ง) */
+    public static KeyBinding YINYANG_KEY;
 
     @Override
     public void onInitializeClient() {
@@ -41,6 +46,29 @@ public class AscensionClient implements ClientModInitializer {
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_G,
                 "key.categories.ascension_rings"));
+
+        YINYANG_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.ascension_rings.yinyang",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_J,
+                "key.categories.ascension_rings"));
+
+        ClientPlayNetworking.registerGlobalReceiver(Net.YY_START, (client, handler, buf, sender) -> {
+            UUID id = buf.readUuid();
+            Vec3d start = new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+            Vec3d book = new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+            client.execute(() -> YinYangState.start(id, start, book));
+        });
+        ClientPlayNetworking.registerGlobalReceiver(Net.YY_STRIKE, (client, handler, buf, sender) -> {
+            UUID id = buf.readUuid();
+            Vec3d target = new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+            double radius = buf.readDouble();
+            client.execute(() -> YinYangState.strike(id, target, radius));
+        });
+        ClientPlayNetworking.registerGlobalReceiver(Net.YY_END, (client, handler, buf, sender) -> {
+            UUID id = buf.readUuid();
+            client.execute(() -> YinYangState.end(id));
+        });
 
         ClientPlayNetworking.registerGlobalReceiver(Net.SWORD_START, (client, handler, buf, sender) -> {
             UUID id = buf.readUuid();
@@ -78,17 +106,27 @@ public class AscensionClient implements ClientModInitializer {
                     ClientPlayNetworking.send(Net.SWORD_ACTIVATE, PacketByteBufs.create());
                 }
             }
+            while (YINYANG_KEY.wasPressed()) {
+                AscensionMod.LOGGER.info("Yin-Yang key pressed (screen={})", client.currentScreen);
+                if (client.player != null && client.currentScreen == null && !ClientState.isLocalActive() && !SwordState.isLocalActive()) {
+                    ClientPlayNetworking.send(Net.YY_ACTIVATE, PacketByteBufs.create());
+                }
+            }
             ClientState.tick(client);
             SwordState.tick(client);
+            YinYangState.tick(client);
         });
 
         WorldRenderEvents.AFTER_TRANSLUCENT.register(AscensionRenderer::render);
         WorldRenderEvents.AFTER_TRANSLUCENT.register(SwordRenderer::render);
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(YinYangRenderer::render);
         HudRenderCallback.EVENT.register(AscensionHud::render);
         HudRenderCallback.EVENT.register(SwordHud::render);
+        HudRenderCallback.EVENT.register(YinYangHud::render);
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             ClientState.clear();
             SwordState.clear();
+            YinYangState.clear();
         });
     }
 

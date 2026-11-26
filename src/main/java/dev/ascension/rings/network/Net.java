@@ -18,5 +18,14 @@ public final class Net {
     /** server -> client : uuid */
     public static final Identifier SWORD_END = new Identifier(AscensionMod.MOD_ID, "sword_end");
 
+    /** สกิล J (Yin-Yang Scripture): client -> server (กดครั้งแรก = เริ่ม, กดอีกครั้ง = สั่งมังกรโจมตีจุดที่เล็ง) */
+    public static final Identifier YY_ACTIVATE = new Identifier(AscensionMod.MOD_ID, "yy_activate");
+    /** server -> client : uuid, caster xyz, book xyz */
+    public static final Identifier YY_START = new Identifier(AscensionMod.MOD_ID, "yy_start");
+    /** server -> client : uuid, target xyz, radius */
+    public static final Identifier YY_STRIKE = new Identifier(AscensionMod.MOD_ID, "yy_strike");
+    /** server -> client : uuid */
+    public static final Identifier YY_END = new Identifier(AscensionMod.MOD_ID, "yy_end");
+
     private Net() {}
 }

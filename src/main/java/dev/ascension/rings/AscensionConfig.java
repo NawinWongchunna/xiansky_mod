@@ -37,6 +37,16 @@ public final class AscensionConfig {
     /** ฟ้าผ่าประกอบฉาก */
     public boolean swordLightning = true;
 
+    // ---- สกิล J (Yin-Yang Scripture) ----
+    /** รัศมีระเบิดหยินหยาง (บล็อก) */
+    public double yinYangRadius = 100.0;
+    /** ดาเมจต่อสิ่งมีชีวิตที่คลื่นผ่าน */
+    public float yinYangDamage = 200.0f;
+    /** คูลดาวน์ (tick) 3600 = 3 นาที */
+    public int yinYangCooldownTicks = 3600;
+    /** แปลงพื้นผิวเป็นลายหยินหยางขาว-ดำ (concrete) หลังทำลาย */
+    public boolean yinYangPaintGround = true;
+
     public static AscensionConfig get() {
         return instance;
     }

@@ -301,6 +301,30 @@ public final class AscensionRenderer {
             quad(center, right, up, alpha);
         }
 
+        /**
+         * ตัดเป็นพัด (sector) ของ sprite วงกลมรอบกึ่งกลางภาพ ตั้งแต่มุม a0 ถึง a1 (เรเดียน, วัดในพิกัด texture ที่แกน y ชี้ลง)
+         * alpha ไล่จาก 0 ที่ขอบ a0 ขึ้นไปเต็มที่ภายใน fadeWidth (ใช้ทำเอฟเฟกต์ "โผล่ออกมาจากผิวน้ำ")
+         * right/up คือเวกเตอร์ครึ่งขนาดของ sprite ทั้งภาพ
+         */
+        void sector(Vec3d center, Vec3d right, Vec3d up, double a0, double a1, double fadeWidth, float alpha) {
+            if (alpha <= 0f || a1 <= a0) return;
+            Vec3d c = center.subtract(f.cam);
+            int n = Math.max(1, (int) Math.ceil((a1 - a0) / 0.04));
+            double step = (a1 - a0) / n;
+            for (int i = 0; i < n; i++) {
+                double s0 = a0 + i * step, s1 = s0 + step;
+                double mid = (s0 + s1) * 0.5;
+                float a = alpha * (float) dev.ascension.rings.YinYangTimeline.smooth((mid - a0) / fadeWidth);
+                if (a <= 0f) continue;
+                float u0 = (float) (0.5 + 0.5 * Math.cos(s0)), v0 = (float) (0.5 + 0.5 * Math.sin(s0));
+                float u1 = (float) (0.5 + 0.5 * Math.cos(s1)), v1 = (float) (0.5 + 0.5 * Math.sin(s1));
+                vert(c, 0.5f, 0.5f, a);
+                vert(c.add(right.multiply(2 * u0 - 1)).add(up.multiply(1 - 2 * v0)), u0, v0, a);
+                vert(c.add(right.multiply(2 * u1 - 1)).add(up.multiply(1 - 2 * v1)), u1, v1, a);
+                vert(c.add(right.multiply(2 * u1 - 1)).add(up.multiply(1 - 2 * v1)), u1, v1, a);
+            }
+        }
+
         private void vert(Vec3d p, float u, float v, float a) {
             buf.vertex(f.m, (float) p.x, (float) p.y, (float) p.z).texture(u, v).color(1f, 1f, 1f, a).next();
         }

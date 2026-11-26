@@ -53,7 +53,7 @@ public final class AscensionRenderer {
     }
 
     /** ข้อมูลต่อเฟรมของผู้เล่นหนึ่งคน */
-    private static final class Frame {
+    static final class Frame {
         Matrix4f m;
         Vec3d cam, camRight, camUp;
         float t;
@@ -68,22 +68,8 @@ public final class AscensionRenderer {
         if (world == null) return;
 
         float td = ctx.tickDelta();
-        Camera camera = ctx.camera();
-        Quaternionf rot = camera.getRotation();
-        Vector3f r = new Vector3f(-1, 0, 0).rotate(rot);
-        Vector3f u = new Vector3f(0, 1, 0).rotate(rot);
-
-        Frame f = new Frame();
-        f.m = ctx.matrixStack().peek().getPositionMatrix();
-        f.cam = camera.getPos();
-        f.camRight = new Vec3d(r.x, r.y, r.z);
-        f.camUp = new Vec3d(u.x, u.y, u.z);
-
-        RenderSystem.disableCull();
-        RenderSystem.depthMask(false);
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableBlend();
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+        Frame f = makeFrame(ctx);
+        beginWorldState();
 
         for (ClientState.Instance inst : ClientState.ACTIVE.values()) {
             PlayerEntity p = world.getPlayerByUuid(inst.uuid);
@@ -100,6 +86,32 @@ public final class AscensionRenderer {
             drawBurst(f);
         }
 
+        endWorldState();
+    }
+
+    /** เตรียมข้อมูลกล้อง/เมทริกซ์ของเฟรมนี้ (ใช้ร่วมกับ SwordRenderer) */
+    static Frame makeFrame(WorldRenderContext ctx) {
+        Camera camera = ctx.camera();
+        Quaternionf rot = camera.getRotation();
+        Vector3f r = new Vector3f(-1, 0, 0).rotate(rot);
+        Vector3f u = new Vector3f(0, 1, 0).rotate(rot);
+        Frame f = new Frame();
+        f.m = ctx.matrixStack().peek().getPositionMatrix();
+        f.cam = camera.getPos();
+        f.camRight = new Vec3d(r.x, r.y, r.z);
+        f.camUp = new Vec3d(u.x, u.y, u.z);
+        return f;
+    }
+
+    static void beginWorldState() {
+        RenderSystem.disableCull();
+        RenderSystem.depthMask(false);
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+    }
+
+    static void endWorldState() {
         RenderSystem.defaultBlendFunc();
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
@@ -226,7 +238,7 @@ public final class AscensionRenderer {
     // ตัวช่วยวาด quad (Tessellator + POSITION_TEXTURE_COLOR, ไม่โดน lighting = เรืองแสง)
     // ------------------------------------------------------------------
 
-    private static final class Batch {
+    static final class Batch {
         private final BufferBuilder buf;
         private final Frame f;
 
@@ -269,6 +281,24 @@ public final class AscensionRenderer {
             if (side.lengthSquared() < 1e-6) return;
             side = side.normalize().multiply(width / 2.0);
             quad(center, dir.multiply(length / 2.0), side, alpha);
+        }
+
+        /** quad ที่ตัดภาพด้านบนออก: texture v ไล่จาก v0 (ขอบบน) ถึง 1 (ขอบล่าง) */
+        void quadV(Vec3d center, Vec3d right, Vec3d up, float alpha, float v0) {
+            if (alpha <= 0f) return;
+            Vec3d c = center.subtract(f.cam);
+            vert(c.subtract(right).subtract(up), 0f, 1f, alpha);
+            vert(c.add(right).subtract(up), 1f, 1f, alpha);
+            vert(c.add(right).add(up), 1f, v0, alpha);
+            vert(c.subtract(right).add(up), 0f, v0, alpha);
+        }
+
+        /** billboard สี่เหลี่ยมผืนผ้า (กว้าง halfW, สูง halfH) พร้อมหมุน roll */
+        void billboardRect(Vec3d center, double halfW, double halfH, double roll, float alpha) {
+            double cs = Math.cos(roll), sn = Math.sin(roll);
+            Vec3d right = f.camRight.multiply(cs).add(f.camUp.multiply(sn)).multiply(halfW);
+            Vec3d up = f.camUp.multiply(cs).subtract(f.camRight.multiply(sn)).multiply(halfH);
+            quad(center, right, up, alpha);
         }
 
         private void vert(Vec3d p, float u, float v, float a) {

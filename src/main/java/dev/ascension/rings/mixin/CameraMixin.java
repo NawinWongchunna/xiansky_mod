@@ -2,6 +2,8 @@ package dev.ascension.rings.mixin;
 
 import dev.ascension.rings.client.ClientState;
 import dev.ascension.rings.client.camera.CameraEffects;
+import dev.ascension.rings.client.sword.SwordCamera;
+import dev.ascension.rings.client.sword.SwordState;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.hit.HitResult;
@@ -39,7 +41,25 @@ public abstract class CameraMixin {
     private void ascension$cutscene(BlockView area, Entity focused, boolean thirdPerson, boolean inverseView,
                                     float tickDelta, CallbackInfo ci) {
         float t = ClientState.cinematicTime(tickDelta);
-        if (t < 0 || focused == null) return;
+        float ts = SwordState.cinematicTime(tickDelta);
+        if ((t < 0 && ts < 0) || focused == null) return;
+
+        float yawO, pitchO, dist, lower, shY, shP;
+        if (t >= 0) {
+            yawO = CameraEffects.yaw(t);
+            pitchO = CameraEffects.pitch(t);
+            dist = CameraEffects.distance(t);
+            lower = CameraEffects.lower(t);
+            shY = CameraEffects.shakeYaw(t);
+            shP = CameraEffects.shakePitch(t);
+        } else {
+            yawO = SwordCamera.yaw(ts);
+            pitchO = SwordCamera.pitch(ts);
+            dist = SwordCamera.distance(ts);
+            lower = SwordCamera.lower(ts);
+            shY = SwordCamera.shakeYaw(ts);
+            shP = SwordCamera.shakePitch(ts);
+        }
 
         // เริ่มจากตำแหน่งตา (ไม่ใช่ตำแหน่ง third-person ปกติ) แล้ว orbit เอง
         Vec3d eye = focused.getLerpedPos(tickDelta).add(0, focused.getEyeHeight(focused.getPose()), 0);
@@ -47,9 +67,8 @@ public abstract class CameraMixin {
         float basePitch = getPitch();
 
         setPos(eye);
-        setRotation(baseYaw + CameraEffects.yaw(t) + CameraEffects.shakeYaw(t),
-                basePitch + CameraEffects.pitch(t) + CameraEffects.shakePitch(t));
-        moveBy(-(4.0 + CameraEffects.distance(t)), CameraEffects.lower(t), 0);
+        setRotation(baseYaw + yawO + shY, basePitch + pitchO + shP);
+        moveBy(-(4.0 + dist), lower, 0);
 
         // กันกล้องทะลุบล็อก
         Vec3d target = getPos();

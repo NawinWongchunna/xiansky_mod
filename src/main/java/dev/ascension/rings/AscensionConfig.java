@@ -21,6 +21,22 @@ public final class AscensionConfig {
     /** คูลดาวน์ (tick) 400 = 20 วินาที */
     public int cooldownTicks = 400;
 
+    // ---- สกิล G (Void Blade) ----
+    /** รัศมีคลื่นทำลายล้าง (บล็อก) */
+    public double swordRadius = 100.0;
+    /** ดาเมจต่อสิ่งมีชีวิตที่คลื่นผ่าน */
+    public float swordDamage = 80.0f;
+    /** คูลดาวน์ (tick) 2400 = 2 นาที */
+    public int swordCooldownTicks = 2400;
+    /** ทำลายบล็อก (ปิดได้ถ้าไม่ต้องการ grief) */
+    public boolean destroyBlocks = true;
+    /** เปลี่ยนสภาพอากาศเป็นพายุฝนฟ้าคะนอง */
+    public boolean changeWeather = true;
+    /** คืนสภาพอากาศเดิมหลังจบสกิล */
+    public boolean restoreWeather = true;
+    /** ฟ้าผ่าประกอบฉาก */
+    public boolean swordLightning = true;
+
     public static AscensionConfig get() {
         return instance;
     }

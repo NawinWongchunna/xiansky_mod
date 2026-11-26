@@ -7,9 +7,10 @@
     "CameraMixin",
     "GameRendererMixin",
     "ClientWorldMixin",
-    "KeyboardInputMixin"
+    "KeyboardInputMixin",
+    "PlayerModelMixin"
   ],
   "injectors": {
-    "defaultRequire": 1
+    "defaultRequire": 0
   }
 }

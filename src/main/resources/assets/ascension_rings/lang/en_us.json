@@ -1,5 +1,6 @@
 {
   "key.ascension_rings.activate": "Ascension (skill)",
+  "key.ascension_rings.sword": "Void Blade (skill)",
   "key.categories.ascension_rings": "Ascension Rings",
   "message.ascension_rings.cooldown": "Ascension cooldown: %s s"
 }

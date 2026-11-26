@@ -1,6 +1,7 @@
 package dev.ascension.rings.mixin;
 
 import dev.ascension.rings.client.ClientState;
+import dev.ascension.rings.client.sword.SwordState;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,18 +15,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ClientWorldMixin {
     @Unique
     private static final Vec3d ASCENSION_SKY = new Vec3d(0.32, 0.0, 0.03);
+    @Unique
+    private static final Vec3d VOID_SKY = new Vec3d(0.07, 0.0, 0.10);
 
     @Inject(method = "getSkyColor", at = @At("RETURN"), cancellable = true)
     private void ascension$sky(Vec3d cameraPos, float tickDelta, CallbackInfoReturnable<Vec3d> cir) {
         float k = ClientState.skyIntensity(tickDelta);
-        if (k <= 0f) return;
-        cir.setReturnValue(cir.getReturnValue().multiply(1.0 - k).add(ASCENSION_SKY.multiply(k)));
+        float ks = SwordState.skyIntensity(tickDelta);
+        if (k <= 0f && ks <= 0f) return;
+        Vec3d c = cir.getReturnValue().multiply(1.0 - k).add(ASCENSION_SKY.multiply(k));
+        cir.setReturnValue(c.multiply(1.0 - ks).add(VOID_SKY.multiply(ks)));
     }
 
     @Inject(method = "getCloudsColor", at = @At("RETURN"), cancellable = true)
     private void ascension$clouds(float tickDelta, CallbackInfoReturnable<Vec3d> cir) {
         float k = ClientState.skyIntensity(tickDelta);
-        if (k <= 0f) return;
-        cir.setReturnValue(cir.getReturnValue().multiply(1.0 - k * 0.8).add(ASCENSION_SKY.multiply(k * 1.5)));
+        float ks = SwordState.skyIntensity(tickDelta);
+        if (k <= 0f && ks <= 0f) return;
+        Vec3d c = cir.getReturnValue().multiply(1.0 - k * 0.8).add(ASCENSION_SKY.multiply(k * 1.5));
+        cir.setReturnValue(c.multiply(1.0 - ks * 0.9).add(VOID_SKY.multiply(ks * 1.2)));
     }
 }

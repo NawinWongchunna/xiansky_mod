@@ -35,7 +35,12 @@ public final class AscensionServer {
 
     private AscensionServer() {}
 
+    public static boolean isActive(UUID id) {
+        return ACTIVE.containsKey(id);
+    }
+
     public static void start(ServerPlayerEntity player) {
+        if (SwordServer.isActive(player.getUuid())) return;
         dev.ascension.rings.AscensionMod.LOGGER.info("Ascension start requested by {}", player.getName().getString());
         if (ACTIVE.containsKey(player.getUuid()) || !player.isAlive() || player.isSpectator()) return;
 

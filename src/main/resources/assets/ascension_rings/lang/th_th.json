@@ -1,5 +1,6 @@
 {
   "key.ascension_rings.activate": "สกิลลอยตัว Ascension",
+  "key.ascension_rings.sword": "สกิลกระบี่แหวกมิติ Void Blade",
   "key.categories.ascension_rings": "Ascension Rings",
   "message.ascension_rings.cooldown": "สกิลยังคูลดาวน์ อีก %s วินาที"
 }

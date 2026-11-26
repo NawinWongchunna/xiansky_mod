@@ -11,5 +11,12 @@ public final class Net {
     /** server -> client : จบสกิล (uuid) */
     public static final Identifier END = new Identifier(AscensionMod.MOD_ID, "end");
 
+    /** สกิล G (Void Blade): client -> server */
+    public static final Identifier SWORD_ACTIVATE = new Identifier(AscensionMod.MOD_ID, "sword_activate");
+    /** server -> client : uuid, impact x,y,z, radius */
+    public static final Identifier SWORD_START = new Identifier(AscensionMod.MOD_ID, "sword_start");
+    /** server -> client : uuid */
+    public static final Identifier SWORD_END = new Identifier(AscensionMod.MOD_ID, "sword_end");
+
     private Net() {}
 }

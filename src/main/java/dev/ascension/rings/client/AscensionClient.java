@@ -1,7 +1,10 @@
 package dev.ascension.rings.client;
 
+import dev.ascension.rings.client.sword.SwordState;
 import dev.ascension.rings.client.vfx.AscensionHud;
 import dev.ascension.rings.client.vfx.AscensionRenderer;
+import dev.ascension.rings.client.vfx.SwordHud;
+import dev.ascension.rings.client.vfx.SwordRenderer;
 import dev.ascension.rings.network.Net;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -22,6 +25,8 @@ import java.util.UUID;
 public class AscensionClient implements ClientModInitializer {
     /** ปุ่มสกิล = P (เปลี่ยนได้ใน Options > Controls) */
     public static KeyBinding ACTIVATE_KEY;
+    /** ปุ่มสกิล Void Blade = G */
+    public static KeyBinding SWORD_KEY;
 
     @Override
     public void onInitializeClient() {
@@ -30,6 +35,23 @@ public class AscensionClient implements ClientModInitializer {
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_P,
                 "key.categories.ascension_rings"));
+
+        SWORD_KEY = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.ascension_rings.sword",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_G,
+                "key.categories.ascension_rings"));
+
+        ClientPlayNetworking.registerGlobalReceiver(Net.SWORD_START, (client, handler, buf, sender) -> {
+            UUID id = buf.readUuid();
+            Vec3d impact = new Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+            double radius = buf.readDouble();
+            client.execute(() -> SwordState.start(id, impact, radius));
+        });
+        ClientPlayNetworking.registerGlobalReceiver(Net.SWORD_END, (client, handler, buf, sender) -> {
+            UUID id = buf.readUuid();
+            client.execute(() -> SwordState.stop(id));
+        });
 
         ClientPlayNetworking.registerGlobalReceiver(Net.START, (client, handler, buf, sender) -> {
             UUID id = buf.readUuid();
@@ -46,16 +68,28 @@ public class AscensionClient implements ClientModInitializer {
             while (ACTIVATE_KEY.wasPressed()) {
                 AscensionMod.LOGGER.info("Ascension key pressed (screen={}, active={})",
                         client.currentScreen, ClientState.isLocalActive());
-                if (client.player != null && client.currentScreen == null && !ClientState.isLocalActive()) {
+                if (client.player != null && client.currentScreen == null && !ClientState.isLocalActive() && !SwordState.isLocalActive()) {
                     ClientPlayNetworking.send(Net.ACTIVATE, PacketByteBufs.create());
                 }
             }
+            while (SWORD_KEY.wasPressed()) {
+                AscensionMod.LOGGER.info("Void Blade key pressed (screen={})", client.currentScreen);
+                if (client.player != null && client.currentScreen == null && !ClientState.isLocalActive() && !SwordState.isLocalActive()) {
+                    ClientPlayNetworking.send(Net.SWORD_ACTIVATE, PacketByteBufs.create());
+                }
+            }
             ClientState.tick(client);
+            SwordState.tick(client);
         });
 
         WorldRenderEvents.AFTER_TRANSLUCENT.register(AscensionRenderer::render);
+        WorldRenderEvents.AFTER_TRANSLUCENT.register(SwordRenderer::render);
         HudRenderCallback.EVENT.register(AscensionHud::render);
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientState.clear());
+        HudRenderCallback.EVENT.register(SwordHud::render);
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            ClientState.clear();
+            SwordState.clear();
+        });
     }
 
     private static boolean keyFreed = false;

@@ -1,18 +1,22 @@
 {
   "schemaVersion": 1,
-  "id": "xiansky",
+  "id": "ascension_rings",
   "version": "${version}",
-  "name": "Xian Sky Walk",
-  "description": "กด G เดินบนอากาศ เหยียบวงแหวนเซียนพุ่งไปข้างหน้า",
-  "authors": ["you"],
+  "name": "Ascension Rings",
+  "description": "กดปุ่ม P ลอยขึ้นฟ้าพร้อมวงแหวนไฟ รวบรวมพลังบรรยากาศ ท้องฟ้าเปลี่ยนสี กล้องสั่น พร้อม cutscene แล้วปล่อยพลังออกมา",
+  "authors": [ "You" ],
   "license": "MIT",
-  "environment": "client",
+  "environment": "*",
   "entrypoints": {
-    "client": ["com.xiansky.XianSkyClient"]
+    "main": [ "dev.ascension.rings.AscensionMod" ],
+    "client": [ "dev.ascension.rings.client.AscensionClient" ]
   },
+  "mixins": [
+    { "config": "ascension_rings.mixins.json", "environment": "client" }
+  ],
   "depends": {
-    "fabricloader": ">=0.15.0",
-    "minecraft": "1.20.1",
+    "fabricloader": ">=0.20.1",
+    "minecraft": "~1.20.1",
     "java": ">=17",
     "fabric-api": "*"
   }
